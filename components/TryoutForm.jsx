@@ -10,7 +10,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     codigo: initialData?.codigo || '',
     setor: initialData?.setor || '',
     descricao: initialData?.descricao || '',
-    status: initialData?.status || 'Em Aberto',
     responsavel: initialData?.responsavel || '',
     dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
     dataProgramada: initialData?.dataProgramada || '',
@@ -27,7 +26,7 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     const newTentativa = {
       numero: formData.tentativas.length + 1,
       data: new Date().toISOString().split('T')[0],
-      resultado: 'Em Execução',
+      status: 'Em Execução',
       responsavel: formData.responsavel || '',
       observacoes: ''
     };
@@ -50,7 +49,7 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     e.preventDefault();
     const cleanData = {
       ...formData,
-      tentativas: formData.tentativas.filter(t => t.data || t.resultado || t.responsavel || t.observacoes)
+      tentativas: formData.tentativas.filter(t => t.data || t.status || t.responsavel || t.observacoes)
     };
     cleanData.tentativas.forEach((t, i) => { t.numero = i + 1; });
     onSubmit(cleanData);
@@ -94,26 +93,14 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
         </div>
       </div>
 
-      {/* Seção 2: Status e Responsabilidade */}
+      {/* Seção 2: Responsabilidade e Datas */}
       <div className="form-section">
-        <h2 className="form-section-title">Status e Responsabilidade</h2>
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Status</label>
-            <select className="form-select" value={formData.status}
-              onChange={e => handleChange('status', e.target.value)}>
-              {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <div style={{ marginTop: '6px' }}>
-              <span className={`badge ${getStatusBadgeClass(formData.status)}`}>{formData.status}</span>
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Responsável pelo Tryout</label>
-            <input className="form-input" type="text" value={formData.responsavel}
-              onChange={e => handleChange('responsavel', e.target.value)}
-              placeholder="Ex: Carlos Silva" />
-          </div>
+        <h2 className="form-section-title">Responsabilidade e Datas</h2>
+        <div className="form-group">
+          <label className="form-label">Responsável pelo Tryout</label>
+          <input className="form-input" type="text" value={formData.responsavel}
+            onChange={e => handleChange('responsavel', e.target.value)}
+            placeholder="Ex: Carlos Silva" />
         </div>
         <div className="form-row">
           <div className="form-group">
@@ -144,7 +131,7 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
             <tr>
               <th>Tentativa</th>
               <th>Data</th>
-              <th>Resultado</th>
+              <th>Status</th>
               <th>Responsável</th>
               <th>Observações</th>
               <th>Ações</th>
@@ -166,10 +153,13 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
                       onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
                   </td>
                   <td>
-                    <select className="form-select" value={tentativa.resultado || ''}
-                      onChange={e => handleTentativaChange(index, 'resultado', e.target.value)}>
+                    <select className="form-select" value={tentativa.status || ''}
+                      onChange={e => handleTentativaChange(index, 'status', e.target.value)}>
                       {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
+                    <div style={{ marginTop: '4px' }}>
+                      <span className={`badge ${getStatusBadgeClass(tentativa.status)}`}>{tentativa.status}</span>
+                    </div>
                   </td>
                   <td>
                     <input className="form-input" type="text" value={tentativa.responsavel || ''}
