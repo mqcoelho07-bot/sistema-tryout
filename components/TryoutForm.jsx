@@ -15,12 +15,12 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
     dataProgramada: initialData?.dataProgramada || '',
     dataConclusao: initialData?.dataConclusao || '',
-    tentativas: initialData?.tentativas || [],
+    tentativas: initialData?.tentativas ? initialData.tentativas.map((t, i) => ({ ...t, numero: i + 1 })) : [],
     observacoes: initialData?.observacoes || ''
   });
 
   const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAddTentativa = () => {
@@ -31,18 +31,29 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
       responsavel: formData.responsavel || '',
       observacoes: ''
     };
-    setFormData({ ...formData, tentativas: [...formData.tentativas, newTentativa] });
+    setFormData(prev => ({ ...prev, tentativas: [...prev.tentativas, newTentativa] }));
+  };
+
+  const handleRemoveTentativa = (index) => {
+    const tentativas = formData.tentativas.filter((_, i) => i !== index);
+    tentativas.forEach((t, i) => { t.numero = i + 1; });
+    setFormData(prev => ({ ...prev, tentativas }));
   };
 
   const handleTentativaChange = (index, field, value) => {
     const tentativas = [...formData.tentativas];
     tentativas[index] = { ...tentativas[index], [field]: value };
-    setFormData({ ...formData, tentativas });
+    setFormData(prev => ({ ...prev, tentativas }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const cleanData = {
+      ...formData,
+      tentativas: formData.tentativas.filter(t => t.data || t.resultado || t.responsavel || t.observacoes)
+    };
+    cleanData.tentativas.forEach((t, i) => { t.numero = i + 1; });
+    onSubmit(cleanData);
   };
 
   const getStatusBadgeClass = (status) => {
@@ -136,12 +147,13 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
               <th>Resultado</th>
               <th>Responsável</th>
               <th>Observações</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {formData.tentativas.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
+                <td colSpan="6" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
                   Nenhuma tentativa registrada. Clique em "Adicionar Nova Tentativa".
                 </td>
               </tr>
@@ -150,24 +162,30 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
                 <tr key={index}>
                   <td style={{ fontWeight: 'bold' }}>{tentativa.numero}ª</td>
                   <td>
-                    <input className="form-input" type="date" value={tentativa.data}
+                    <input className="form-input" type="date" value={tentativa.data || ''}
                       onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
                   </td>
                   <td>
-                    <select className="form-select" value={tentativa.resultado}
+                    <select className="form-select" value={tentativa.resultado || ''}
                       onChange={e => handleTentativaChange(index, 'resultado', e.target.value)}>
                       {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
                   <td>
-                    <input className="form-input" type="text" value={tentativa.responsavel}
+                    <input className="form-input" type="text" value={tentativa.responsavel || ''}
                       onChange={e => handleTentativaChange(index, 'responsavel', e.target.value)}
                       placeholder="Responsável" />
                   </td>
                   <td>
-                    <input className="form-input" type="text" value={tentativa.observacoes}
+                    <input className="form-input" type="text" value={tentativa.observacoes || ''}
                       onChange={e => handleTentativaChange(index, 'observacoes', e.target.value)}
                       placeholder="Observações da tentativa" />
+                  </td>
+                  <td>
+                    <button type="button" className="btn-remove-tentativa"
+                      onClick={() => handleRemoveTentativa(index)} title="Excluir tentativa">
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               ))
