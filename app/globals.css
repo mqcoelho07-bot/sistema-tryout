@@ -1,0 +1,345 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f6fa;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 240px;
+  height: 100vh;
+  background-color: #1a2238;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  z-index: 100;
+}
+
+.sidebar-title {
+  padding: 0 24px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #2d3554;
+  margin-bottom: 16px;
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.sidebar-menu-item {
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #a0a8c0;
+  text-decoration: none;
+}
+
+.sidebar-menu-item:hover {
+  background-color: #2d3554;
+  color: white;
+}
+
+.sidebar-menu-item.active {
+  background-color: #2d4a7c;
+  color: white;
+  border-left: 3px solid #4a90d9;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+  margin-left: 240px;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #1a2238;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.breadcrumb a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Counter Cards ===== */
+.counter-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.counter-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid;
+}
+
+.counter-card.aberto { border-left-color: #3b82f6; }
+.counter-card.aprovado { border-left-color: #22c55e; }
+.counter-card.reprovado { border-left-color: #ef4444; }
+.counter-card.condicional { border-left-color: #f59e0b; }
+
+.counter-number {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1a2238;
+}
+
+.counter-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* ===== Table ===== */
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #1a2238;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  vertical-align: top;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+tr:hover {
+  background-color: #f9fafb;
+}
+
+/* ===== Filter Inputs ===== */
+.filter-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: #2d3554;
+  color: white;
+  margin-top: 6px;
+}
+
+.filter-input::placeholder {
+  color: #9ca3af;
+}
+
+/* ===== Status Badges ===== */
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-aberto { background-color: #dbeafe; color: #1e40af; }
+.badge-execucao { background-color: #dbeafe; color: #1e40af; }
+.badge-aprovado { background-color: #dcfce7; color: #166534; }
+.badge-reprovado { background-color: #fee2e2; color: #991b1b; }
+.badge-condicional { background-color: #fef3c7; color: #92400e; }
+
+/* ===== Buttons ===== */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn-add { background-color: #22c55e; color: white; }
+.btn-save { background-color: #22c55e; color: white; }
+.btn-cancel { background-color: #6b7280; color: white; }
+.btn-export { background-color: #f59e0b; color: white; }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Action Icons ===== */
+.action-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+
+.action-icon:hover {
+  background-color: #e5e7eb;
+}
+
+/* ===== Form ===== */
+.form-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a2238;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #3b82f6;
+}
+
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* ===== Tentativas Table ===== */
+.tentativas-table {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.tentativas-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.tentativas-table td {
+  font-size: 13px;
+  padding: 8px 12px;
+  white-space: normal;
+}
+
+.tentativas-table .form-input,
+.tentativas-table .form-select {
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #9ca3af;
+}
