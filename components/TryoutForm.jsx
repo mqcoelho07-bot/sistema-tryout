@@ -1,0 +1,199 @@
+'use client';
+
+import { useState } from 'react';
+
+const SETORES = ['Vulcanização', 'Estamparia', 'Fundição', 'Montagem'];
+const STATUS = ['Em Aberto', 'Em Execução', 'Aprovado', 'Reprovado', 'Aprovado Condicionalmente'];
+
+export default function TryoutForm({ initialData, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState({
+    codigo: initialData?.codigo || '',
+    setor: initialData?.setor || '',
+    descricao: initialData?.descricao || '',
+    status: initialData?.status || 'Em Aberto',
+    responsavel: initialData?.responsavel || '',
+    dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
+    dataProgramada: initialData?.dataProgramada || '',
+    dataConclusao: initialData?.dataConclusao || '',
+    tentativas: initialData?.tentativas || [],
+    observacoes: initialData?.observacoes || ''
+  });
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleAddTentativa = () => {
+    const newTentativa = {
+      numero: formData.tentativas.length + 1,
+      data: new Date().toISOString().split('T')[0],
+      resultado: 'Em Execução',
+      responsavel: formData.responsavel || '',
+      observacoes: ''
+    };
+    setFormData({ ...formData, tentativas: [...formData.tentativas, newTentativa] });
+  };
+
+  const handleTentativaChange = (index, field, value) => {
+    const tentativas = [...formData.tentativas];
+    tentativas[index] = { ...tentativas[index], [field]: value };
+    setFormData({ ...formData, tentativas });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      'Em Aberto': 'badge-aberto',
+      'Em Execução': 'badge-execucao',
+      'Aprovado': 'badge-aprovado',
+      'Reprovado': 'badge-reprovado',
+      'Aprovado Condicionalmente': 'badge-condicional'
+    };
+    return map[status] || '';
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="form-card">
+      {/* Seção 1: Informações da Ferramenta */}
+      <div className="form-section">
+        <h2 className="form-section-title">Informações da Ferramenta</h2>
+        <div className="form-group">
+          <label className="form-label">Código da Ferramenta *</label>
+          <input className="form-input" type="text" value={formData.codigo}
+            onChange={e => handleChange('codigo', e.target.value)}
+            placeholder="Ex: VULC-001" required />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Setor *</label>
+          <select className="form-select" value={formData.setor}
+            onChange={e => handleChange('setor', e.target.value)} required>
+            <option value="">Selecione...</option>
+            {SETORES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Descrição da Ferramenta</label>
+          <input className="form-input" type="text" value={formData.descricao}
+            onChange={e => handleChange('descricao', e.target.value)}
+            placeholder="Ex: Matriz de vulcanização - Pneu 205/55 R16" />
+        </div>
+      </div>
+
+      {/* Seção 2: Status e Responsabilidade */}
+      <div className="form-section">
+        <h2 className="form-section-title">Status e Responsabilidade</h2>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select className="form-select" value={formData.status}
+              onChange={e => handleChange('status', e.target.value)}>
+              {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <div style={{ marginTop: '6px' }}>
+              <span className={`badge ${getStatusBadgeClass(formData.status)}`}>{formData.status}</span>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Responsável pelo Tryout</label>
+            <input className="form-input" type="text" value={formData.responsavel}
+              onChange={e => handleChange('responsavel', e.target.value)}
+              placeholder="Ex: Carlos Silva" />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Data de Abertura</label>
+            <input className="form-input" type="date" value={formData.dataAbertura}
+              onChange={e => handleChange('dataAbertura', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Data Programada</label>
+            <input className="form-input" type="date" value={formData.dataProgramada}
+              onChange={e => handleChange('dataProgramada', e.target.value)} />
+            <div className="form-hint">Data em que o tryout está programado para entrar na máquina</div>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Data de Conclusão</label>
+          <input className="form-input" type="date" value={formData.dataConclusao}
+            onChange={e => handleChange('dataConclusao', e.target.value)} />
+          <div className="form-hint">Preenchida ao concluir o tryout</div>
+        </div>
+      </div>
+
+      {/* Seção 3: Tentativas de Tryout */}
+      <div className="form-section">
+        <h2 className="form-section-title">Tentativas de Tryout</h2>
+        <table className="tentativas-table">
+          <thead>
+            <tr>
+              <th>Tentativa</th>
+              <th>Data</th>
+              <th>Resultado</th>
+              <th>Responsável</th>
+              <th>Observações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formData.tentativas.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
+                  Nenhuma tentativa registrada. Clique em "Adicionar Nova Tentativa".
+                </td>
+              </tr>
+            ) : (
+              formData.tentativas.map((tentativa, index) => (
+                <tr key={index}>
+                  <td style={{ fontWeight: 'bold' }}>{tentativa.numero}ª</td>
+                  <td>
+                    <input className="form-input" type="date" value={tentativa.data}
+                      onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
+                  </td>
+                  <td>
+                    <select className="form-select" value={tentativa.resultado}
+                      onChange={e => handleTentativaChange(index, 'resultado', e.target.value)}>
+                      {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <input className="form-input" type="text" value={tentativa.responsavel}
+                      onChange={e => handleTentativaChange(index, 'responsavel', e.target.value)}
+                      placeholder="Responsável" />
+                  </td>
+                  <td>
+                    <input className="form-input" type="text" value={tentativa.observacoes}
+                      onChange={e => handleTentativaChange(index, 'observacoes', e.target.value)}
+                      placeholder="Observações da tentativa" />
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        <button type="button" className="btn btn-add" onClick={handleAddTentativa}>
+          + Adicionar Nova Tentativa
+        </button>
+      </div>
+
+      {/* Seção 4: Observações */}
+      <div className="form-section">
+        <h2 className="form-section-title">Observações Gerais</h2>
+        <div className="form-group">
+          <textarea className="form-textarea" value={formData.observacoes}
+            onChange={e => handleChange('observacoes', e.target.value)}
+            placeholder="Observações gerais sobre o tryout..." />
+        </div>
+      </div>
+
+      {/* Ações */}
+      <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+        <button type="submit" className="btn btn-save">Salvar Alterações</button>
+        <button type="button" className="btn btn-cancel" onClick={onCancel}>Cancelar</button>
+      </div>
+    </form>
+  );
+}
