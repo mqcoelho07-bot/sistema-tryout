@@ -6,19 +6,27 @@ import { getTryouts, deleteTryout } from '../lib/storage';
 
 export default function Home() {
   const [tryouts, setTryouts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     codigo: '', setor: '', status: '', responsavel: '',
     dataProgramada: '', dataConclusao: '', tentativas: '', observacoes: ''
   });
 
   useEffect(() => {
-    setTryouts(getTryouts());
+    async function loadData() {
+      setLoading(true);
+      const data = await getTryouts();
+      setTryouts(data);
+      setLoading(false);
+    }
+    loadData();
   }, []);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Deseja realmente excluir este tryout?')) {
-      deleteTryout(id);
-      setTryouts(getTryouts());
+      await deleteTryout(id);
+      const data = await getTryouts();
+      setTryouts(data);
     }
   };
 
@@ -77,6 +85,10 @@ export default function Home() {
     { key: 'tentativas', label: 'Tentativas' },
     { key: 'observacoes', label: 'Observações' }
   ];
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Carregando...</div>;
+  }
 
   return (
     <div>
