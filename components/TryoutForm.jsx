@@ -10,6 +10,7 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     codigo: initialData?.codigo || '',
     setor: initialData?.setor || '',
     descricao: initialData?.descricao || '',
+    status: initialData?.status || 'Em Aberto',
     responsavel: initialData?.responsavel || '',
     dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
     dataProgramada: initialData?.dataProgramada || '',
@@ -93,14 +94,26 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
         </div>
       </div>
 
-      {/* Seção 2: Responsabilidade e Datas */}
+      {/* Seção 2: Status e Responsabilidade */}
       <div className="form-section">
-        <h2 className="form-section-title">Responsabilidade e Datas</h2>
-        <div className="form-group">
-          <label className="form-label">Responsável pelo Tryout</label>
-          <input className="form-input" type="text" value={formData.responsavel}
-            onChange={e => handleChange('responsavel', e.target.value)}
-            placeholder="Ex: Carlos Silva" />
+        <h2 className="form-section-title">Status e Responsabilidade</h2>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Status do Tryout</label>
+            <select className="form-select" value={formData.status}
+              onChange={e => handleChange('status', e.target.value)}>
+              {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <div style={{ marginTop: '6px' }}>
+              <span className={`badge ${getStatusBadgeClass(formData.status)}`}>{formData.status}</span>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Responsável pelo Tryout</label>
+            <input className="form-input" type="text" value={formData.responsavel}
+              onChange={e => handleChange('responsavel', e.target.value)}
+              placeholder="Ex: Carlos Silva" />
+          </div>
         </div>
         <div className="form-row">
           <div className="form-group">
