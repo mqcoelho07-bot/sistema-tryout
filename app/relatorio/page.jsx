@@ -5,9 +5,16 @@ import { getTryouts } from '../../lib/storage';
 
 export default function Relatorio() {
   const [tryouts, setTryouts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTryouts(getTryouts());
+    async function loadData() {
+      setLoading(true);
+      const data = await getTryouts();
+      setTryouts(data);
+      setLoading(false);
+    }
+    loadData();
   }, []);
 
   function formatDate(dateStr) {
@@ -51,6 +58,10 @@ export default function Relatorio() {
     link.download = 'relatorio_tryouts.csv';
     link.click();
   };
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Carregando...</div>;
+  }
 
   return (
     <div>
