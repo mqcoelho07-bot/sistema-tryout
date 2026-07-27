@@ -1,233 +1,219 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
 
-const STATUS_OPTIONS = [
-  { value: 'Não Iniciado', label: 'Não Iniciado', color: '#6b7280' },
-  { value: 'Em Aberto', label: 'Em Aberto', color: '#3b82f6' },
-  { value: 'Em Execução', label: 'Em Execução', color: '#3b82f6' },
-  { value: 'Aprovado', label: 'Aprovado', color: '#16a34a' },
-  { value: 'Reprovado', label: 'Reprovado', color: '#dc2626' },
-  { value: 'Aprovado Condicionalmente', label: 'Aprovado Condicionalmente', color: '#d97706' },
-];
+const SETORES = ['Vulcanização', 'Estamparia', 'Fundição', 'Montagem'];
+const STATUS = ['Não Iniciado', 'Em Execução', 'Aprovado', 'Reprovado', 'Aprovado Condicionalmente'];
 
-const SETORES = ['Vulcanização', 'Estamparia', 'Fundição', 'Montagem', 'Usinagem'];
-
-export default function TryoutForm({ tryout, onSave, onCancel }) {
-  const isEdit = !!tryout;
-
+export default function TryoutForm({ initialData, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    codigo: tryout?.codigo || '',
-    setor: tryout?.setor || '',
-    descricao: tryout?.descricao || '',
-    status: tryout?.status || 'Não Iniciado',
-    responsavel: tryout?.responsavel || '',
-    dataAbertura: tryout?.dataAbertura || new Date().toLocaleDateString('pt-BR'),
-    dataProgramada: tryout?.dataProgramada || '',
-    dataConclusao: tryout?.dataConclusao || '',
-    tentativas: tryout?.tentativas || [],
-    observacoes: tryout?.observacoes || '',
+    codigo: initialData?.codigo || '',
+    setor: initialData?.setor || '',
+    descricao: initialData?.descricao || '',
+    status: initialData?.status || 'Não Iniciado',
+    responsavel: initialData?.responsavel || '',
+    dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
+    dataProgramada: initialData?.dataProgramada || '',
+    dataConclusao: initialData?.dataConclusao || '',
+    tentativas: initialData?.tentativas ? initialData.tentativas.map((t, i) => ({ ...t, numero: i + 1 })) : [],
+    observacoes: initialData?.observacoes || ''
   });
-
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAddTentativa = () => {
-    const nova = {
+    const newTentativa = {
       numero: formData.tentativas.length + 1,
-      data: new Date().toLocaleDateString('pt-BR'),
+      data: new Date().toISOString().split('T')[0],
       status: 'Em Execução',
       responsavel: formData.responsavel || '',
-      observacoes: '',
+      observacoes: ''
     };
-    handleChange('tentativas', [...formData.tentativas, nova]);
+    setFormData(prev => ({ ...prev, tentativas: [...prev.tentativas, newTentativa] }));
   };
 
   const handleRemoveTentativa = (index) => {
-    const novas = formData.tentativas.filter((_, i) => i !== index);
-    novas.forEach((t, i) => { t.numero = i + 1; });
-    handleChange('tentativas', novas);
+    const tentativas = formData.tentativas.filter((_, i) => i !== index);
+    tentativas.forEach((t, i) => { t.numero = i + 1; });
+    setFormData(prev => ({ ...prev, tentativas }));
   };
 
   const handleTentativaChange = (index, field, value) => {
-    const novas = [...formData.tentativas];
-    novas[index] = { ...novas[index], [field]: value };
-    handleChange('tentativas', novas);
+    const tentativas = [...formData.tentativas];
+    tentativas[index] = { ...tentativas[index], [field]: value };
+    setFormData(prev => ({ ...prev, tentativas }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    try {
-      const dados = {
-        id: tryout?.id || Date.now().toString(),
-        codigo: formData.codigo,
-        setor: formData.setor,
-        descricao: formData.descricao,
-        status: formData.status,
-        responsavel: formData.responsavel,
-        dataAbertura: formData.dataAbertura,
-        dataProgramada: formData.dataProgramada,
-        dataConclusao: formData.dataConclusao,
-        tentativas: formData.tentativas,
-        observacoes: formData.observacoes,
-      };
-
-      if (isEdit) {
-        const { error: err } = await supabase.from('tryouts').update(dados).eq('id', tryout.id);
-        if (err) throw err;
-      } else {
-        const { error: err } = await supabase.from('tryouts').insert([dados]);
-        if (err) throw err;
-      }
-      onSave?.(dados);
-    } catch (err) {
-      console.error('Erro ao salvar:', err);
-      setError('Erro ao salvar. Verifique os dados e tente novamente.');
-    } finally {
-      setSaving(false);
-    }
+    const cleanData = {
+      ...formData,
+      tentativas: formData.tentativas.filter(t => t.data || t.status || t.responsavel || t.observacoes)
+    };
+    cleanData.tentativas.forEach((t, i) => { t.numero = i + 1; });
+    onSubmit(cleanData);
   };
 
-  const getStatusColor = (status) => STATUS_OPTIONS.find(o => o.value === status)?.color || '#6b7280';
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      'Não Iniciado': 'badge-aberto',
+      'Em Execução': 'badge-execucao',
+      'Aprovado': 'badge-aprovado',
+      'Reprovado': 'badge-reprovado',
+      'Aprovado Condicionalmente': 'badge-condicional'
+    };
+    return map[status] || '';
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Seção 1 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          1. Informações da Ferramenta
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Código da Ferramenta <span className="text-red-500">*</span></label>
-            <input type="text" value={formData.codigo} onChange={(e) => handleChange('codigo', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: VULC-001" required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Setor <span className="text-red-500">*</span></label>
-            <select value={formData.setor} onChange={(e) => handleChange('setor', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-              <option value="">Selecione...</option>
-              {SETORES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Descrição da Ferramenta</label>
-            <input type="text" value={formData.descricao} onChange={(e) => handleChange('descricao', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Descrição da ferramenta" />
-          </div>
+    <form onSubmit={handleSubmit} className="form-card">
+      {/* Seção 1: Informações da Ferramenta */}
+      <div className="form-section">
+        <h2 className="form-section-title">Informações da Ferramenta</h2>
+        <div className="form-group">
+          <label className="form-label">Código da Ferramenta *</label>
+          <input className="form-input" type="text" value={formData.codigo}
+            onChange={e => handleChange('codigo', e.target.value)}
+            placeholder="Ex: VULC-001" required />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Setor *</label>
+          <select className="form-select" value={formData.setor}
+            onChange={e => handleChange('setor', e.target.value)} required>
+            <option value="">Selecione...</option>
+            {SETORES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Descrição da Ferramenta</label>
+          <input className="form-input" type="text" value={formData.descricao}
+            onChange={e => handleChange('descricao', e.target.value)}
+            placeholder="Ex: Matriz de vulcanização - Pneu 205/55 R16" />
         </div>
       </div>
 
-      {/* Seção 2 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          2. Status e Responsabilidade
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Status do Tryout</label>
-            <select value={formData.status} onChange={(e) => handleChange('status', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-              {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+      {/* Seção 2: Status e Responsabilidade */}
+      <div className="form-section">
+        <h2 className="form-section-title">Status e Responsabilidade</h2>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Status do Tryout</label>
+            <select className="form-select" value={formData.status}
+              onChange={e => handleChange('status', e.target.value)}>
+              {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full text-white" style={{ backgroundColor: getStatusColor(formData.status) }}>{formData.status}</span>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Responsável pelo Tryout</label>
-            <input type="text" value={formData.responsavel} onChange={(e) => handleChange('responsavel', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nome do responsável" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Data de Abertura</label>
-            <input type="text" value={formData.dataAbertura} onChange={(e) => handleChange('dataAbertura', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="DD/MM/AAAA" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Data Programada</label>
-            <input type="text" value={formData.dataProgramada} onChange={(e) => handleChange('dataProgramada', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="DD/MM/AAAA" />
-            <p className="text-xs text-gray-400 mt-1">Data em que o tryout está programado para entrar na máquina</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Data de Conclusão</label>
-            <input type="text" value={formData.dataConclusao} onChange={(e) => handleChange('dataConclusao', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="DD/MM/AAAA" />
-            <p className="text-xs text-gray-400 mt-1">Preenchida ao concluir o tryout</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Seção 3 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          3. Tentativas de Tryout
-        </h3>
-
-        {formData.tentativas.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-4">Nenhuma tentativa registrada ainda.</p>
-        ) : (
-          <div className="space-y-3">
-            <div className="grid grid-cols-12 gap-2 px-2 py-2 bg-gray-50 rounded-md">
-              <div className="col-span-2 text-xs font-semibold text-gray-500 uppercase">Tentativa</div>
-              <div className="col-span-2 text-xs font-semibold text-gray-500 uppercase">Data</div>
-              <div className="col-span-3 text-xs font-semibold text-gray-500 uppercase">Status</div>
-              <div className="col-span-3 text-xs font-semibold text-gray-500 uppercase">Responsável</div>
-              <div className="col-span-2 text-xs font-semibold text-gray-500 uppercase text-center">Ações</div>
+            <div style={{ marginTop: '6px' }}>
+              <span className={`badge ${getStatusBadgeClass(formData.status)}`}>{formData.status}</span>
             </div>
-
-            {formData.tentativas.map((t, index) => (
-              <div key={index} className="border border-gray-200 rounded-md overflow-hidden">
-                <div className="grid grid-cols-12 gap-2 p-2 items-center bg-white">
-                  <div className="col-span-2">
-                    <input type="text" value={`${t.numero}ª`} readOnly className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 text-center font-medium" />
-                  </div>
-                  <div className="col-span-2">
-                    <input type="text" value={t.data} onChange={(e) => handleTentativaChange(index, 'data', e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="DD/MM/AAAA" />
-                  </div>
-                  <div className="col-span-3">
-                    <select value={t.status} onChange={(e) => handleTentativaChange(index, 'status', e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
-                      {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                  </div>
-                  <div className="col-span-3">
-                    <input type="text" value={t.responsavel} onChange={(e) => handleTentativaChange(index, 'responsavel', e.target.value)} className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Responsável" />
-                  </div>
-                  <div className="col-span-2 flex justify-center">
-                    <button type="button" onClick={() => handleRemoveTentativa(index)} className="text-red-500 hover:text-red-700 p-1 text-sm" title="Remover tentativa">Excluir</button>
-                  </div>
-                </div>
-                <div className="border-t border-gray-100 bg-gray-50/50 p-2">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Observações</label>
-                  <textarea value={t.observacoes} onChange={(e) => handleTentativaChange(index, 'observacoes', e.target.value)} rows={3} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y" placeholder="Digite as observações da tentativa..." />
-                </div>
-              </div>
-            ))}
           </div>
-        )}
+          <div className="form-group">
+            <label className="form-label">Responsável pelo Tryout</label>
+            <input className="form-input" type="text" value={formData.responsavel}
+              onChange={e => handleChange('responsavel', e.target.value)}
+              placeholder="Ex: Carlos Silva" />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Data de Abertura</label>
+            <input className="form-input" type="date" value={formData.dataAbertura}
+              onChange={e => handleChange('dataAbertura', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Data Programada</label>
+            <input className="form-input" type="date" value={formData.dataProgramada}
+              onChange={e => handleChange('dataProgramada', e.target.value)} />
+            <div className="form-hint">Data em que o tryout está programado para entrar na máquina</div>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Data de Conclusão</label>
+          <input className="form-input" type="date" value={formData.dataConclusao}
+            onChange={e => handleChange('dataConclusao', e.target.value)} />
+          <div className="form-hint">Preenchida ao concluir o tryout</div>
+        </div>
+      </div>
 
-        <button type="button" onClick={handleAddTentativa} className="mt-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors">
+      {/* Seção 3: Tentativas de Tryout */}
+      <div className="form-section">
+        <h2 className="form-section-title">Tentativas de Tryout</h2>
+        <table className="tentativas-table">
+          <thead>
+            <tr>
+              <th>Tentativa</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Responsável</th>
+              <th>Observações</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formData.tentativas.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
+                  Nenhuma tentativa registrada. Clique em "Adicionar Nova Tentativa".
+                </td>
+              </tr>
+            ) : (
+              formData.tentativas.map((tentativa, index) => (
+                <tr key={index}>
+                  <td style={{ fontWeight: 'bold' }}>{tentativa.numero}ª</td>
+                  <td>
+                    <input className="form-input" type="date" value={tentativa.data || ''}
+                      onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
+                  </td>
+                  <td>
+                    <select className="form-select" value={tentativa.status || ''}
+                      onChange={e => handleTentativaChange(index, 'status', e.target.value)}>
+                      {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <div style={{ marginTop: '4px' }}>
+                      <span className={`badge ${getStatusBadgeClass(tentativa.status)}`}>{tentativa.status}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <input className="form-input" type="text" value={tentativa.responsavel || ''}
+                      onChange={e => handleTentativaChange(index, 'responsavel', e.target.value)}
+                      placeholder="Responsável" />
+                  </td>
+                  <td>
+                    <input className="form-input" type="text" value={tentativa.observacoes || ''}
+                      onChange={e => handleTentativaChange(index, 'observacoes', e.target.value)}
+                      placeholder="Observações da tentativa" />
+                  </td>
+                  <td>
+                    <button type="button" className="btn-remove-tentativa"
+                      onClick={() => handleRemoveTentativa(index)} title="Excluir tentativa">
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        <button type="button" className="btn btn-add" onClick={handleAddTentativa}>
           + Adicionar Nova Tentativa
         </button>
       </div>
 
-      {/* Seção 4 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          4. Observações Gerais
-        </h3>
-        <textarea value={formData.observacoes} onChange={(e) => handleChange('observacoes', e.target.value)} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y" placeholder="Observações gerais sobre o tryout..." />
+      {/* Seção 4: Observações */}
+      <div className="form-section">
+        <h2 className="form-section-title">Observações Gerais</h2>
+        <div className="form-group">
+          <textarea className="form-textarea" value={formData.observacoes}
+            onChange={e => handleChange('observacoes', e.target.value)}
+            placeholder="Observações gerais sobre o tryout..." />
+        </div>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">{error}</div>}
-
-      <div className="flex gap-3">
-        <button type="submit" disabled={saving} className="px-6 py-2.5 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:opacity-50">
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
-        </button>
-        <button type="button" onClick={onCancel} className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-md hover:bg-gray-300 transition-colors">
-          Cancelar
-        </button>
+      {/* Ações */}
+      <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+        <button type="submit" className="btn btn-save">Salvar Alterações</button>
+        <button type="button" className="btn btn-cancel" onClick={onCancel}>Cancelar</button>
       </div>
     </form>
   );
