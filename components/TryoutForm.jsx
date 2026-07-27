@@ -3,14 +3,14 @@
 import { useState } from 'react';
 
 const SETORES = ['Vulcanização', 'Estamparia', 'Fundição', 'Montagem'];
-const STATUS = ['Em Aberto', 'Em Execução', 'Aprovado', 'Reprovado', 'Aprovado Condicionalmente'];
+const STATUS = ['Não Iniciado', 'Em Execução', 'Aprovado', 'Reprovado', 'Aprovado Condicionalmente'];
 
 export default function TryoutForm({ initialData, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     codigo: initialData?.codigo || '',
     setor: initialData?.setor || '',
     descricao: initialData?.descricao || '',
-    status: initialData?.status || 'Em Aberto',
+    status: initialData?.status || 'Não Iniciado',
     responsavel: initialData?.responsavel || '',
     dataAbertura: initialData?.dataAbertura || new Date().toISOString().split('T')[0],
     dataProgramada: initialData?.dataProgramada || '',
@@ -58,7 +58,7 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
 
   const getStatusBadgeClass = (status) => {
     const map = {
-      'Em Aberto': 'badge-aberto',
+      'Não Iniciado': 'badge-aberto',
       'Em Execução': 'badge-execucao',
       'Aprovado': 'badge-aprovado',
       'Reprovado': 'badge-reprovado',
