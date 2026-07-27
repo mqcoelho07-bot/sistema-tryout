@@ -9,14 +9,22 @@ import TryoutForm from '../../../components/TryoutForm';
 export default function EditarTryout({ params }) {
   const router = useRouter();
   const [tryout, setTryout] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const data = getTryoutById(params.id);
-    setTryout(data);
+    async function loadData() {
+      setLoading(true);
+      const data = await getTryoutById(params.id);
+      setTryout(data);
+      setLoading(false);
+    }
+    loadData();
   }, [params.id]);
 
-  const handleSubmit = (updates) => {
-    updateTryout(params.id, updates);
+  const handleSubmit = async (updates) => {
+    setSaving(true);
+    await updateTryout(params.id, updates);
     router.push('/');
   };
 
@@ -24,8 +32,16 @@ export default function EditarTryout({ params }) {
     router.push('/');
   };
 
-  if (!tryout) {
+  if (loading) {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Carregando...</div>;
+  }
+
+  if (!tryout) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Tryout não encontrado.</div>;
+  }
+
+  if (saving) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Salvando...</div>;
   }
 
   return (
