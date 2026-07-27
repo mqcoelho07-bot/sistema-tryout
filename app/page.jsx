@@ -41,8 +41,8 @@ export default function Home() {
 
   const countByStatus = (type) => {
     return tryouts.filter(t => {
-      const status = t.status || 'Em Aberto';
-      if (type === 'aberto') return status === 'Em Aberto' || status === 'Em Execução';
+      const status = t.status || 'Não Iniciado';
+      if (type === 'aberto') return status === 'Não Iniciado' || status === 'Em Execução';
       if (type === 'aprovado') return status === 'Aprovado';
       if (type === 'reprovado') return status === 'Reprovado';
       if (type === 'condicional') return status === 'Aprovado Condicionalmente';
@@ -52,7 +52,7 @@ export default function Home() {
 
   const getStatusBadgeClass = (status) => {
     const map = {
-      'Em Aberto': 'badge-aberto',
+      'Não Iniciado': 'badge-aberto',
       'Em Execução': 'badge-execucao',
       'Aprovado': 'badge-aprovado',
       'Reprovado': 'badge-reprovado',
@@ -90,7 +90,7 @@ export default function Home() {
       <div className="counter-cards">
         <div className="counter-card aberto">
           <div className="counter-number">{countByStatus('aberto')}</div>
-          <div className="counter-label">Tryouts em Aberto</div>
+          <div className="counter-label">Tryouts Não Iniciados / Em Execução</div>
         </div>
         <div className="counter-card aprovado">
           <div className="counter-number">{countByStatus('aprovado')}</div>
@@ -136,7 +136,7 @@ export default function Home() {
                 <tr key={t.id}>
                   <td>{t.codigo}</td>
                   <td>{t.setor}</td>
-                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Em Aberto'}</span></td>
+                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Não Iniciado'}</span></td>
                   <td>{t.responsavel}</td>
                   <td>{formatDate(t.dataProgramada)}</td>
                   <td>{formatDate(t.dataConclusao)}</td>
