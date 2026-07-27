@@ -26,17 +26,11 @@ export default function Home() {
     setFilters({ ...filters, [column]: value });
   };
 
-  const getTryoutStatus = (tryout) => {
-    if (!tryout.tentativas || tryout.tentativas.length === 0) return 'Em Aberto';
-    return tryout.tentativas[tryout.tentativas.length - 1].status || 'Em Aberto';
-  };
-
   const filteredTryouts = tryouts.filter(t => {
-    const status = getTryoutStatus(t);
     return (
       (t.codigo || '').toLowerCase().includes(filters.codigo.toLowerCase()) &&
       (t.setor || '').toLowerCase().includes(filters.setor.toLowerCase()) &&
-      status.toLowerCase().includes(filters.status.toLowerCase()) &&
+      (t.status || '').toLowerCase().includes(filters.status.toLowerCase()) &&
       (t.responsavel || '').toLowerCase().includes(filters.responsavel.toLowerCase()) &&
       formatDate(t.dataProgramada).includes(filters.dataProgramada.toLowerCase()) &&
       formatDate(t.dataConclusao).includes(filters.dataConclusao.toLowerCase()) &&
@@ -47,7 +41,7 @@ export default function Home() {
 
   const countByStatus = (type) => {
     return tryouts.filter(t => {
-      const status = getTryoutStatus(t);
+      const status = t.status || 'Em Aberto';
       if (type === 'aberto') return status === 'Em Aberto' || status === 'Em Execução';
       if (type === 'aprovado') return status === 'Aprovado';
       if (type === 'reprovado') return status === 'Reprovado';
@@ -138,27 +132,24 @@ export default function Home() {
                 </td>
               </tr>
             ) : (
-              filteredTryouts.map(t => {
-                const status = getTryoutStatus(t);
-                return (
-                  <tr key={t.id}>
-                    <td>{t.codigo}</td>
-                    <td>{t.setor}</td>
-                    <td><span className={`badge ${getStatusBadgeClass(status)}`}>{status}</span></td>
-                    <td>{t.responsavel}</td>
-                    <td>{formatDate(t.dataProgramada)}</td>
-                    <td>{formatDate(t.dataConclusao)}</td>
-                    <td>{t.tentativas?.length || 0}</td>
-                    <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.observacoes}</td>
-                    <td>
-                      <div className="action-icons">
-                        <Link href={`/editar/${t.id}`} className="action-icon" title="Editar">✏️</Link>
-                        <span className="action-icon" onClick={() => handleDelete(t.id)} title="Excluir" style={{ cursor: 'pointer' }}>🗑️</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+              filteredTryouts.map(t => (
+                <tr key={t.id}>
+                  <td>{t.codigo}</td>
+                  <td>{t.setor}</td>
+                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Em Aberto'}</span></td>
+                  <td>{t.responsavel}</td>
+                  <td>{formatDate(t.dataProgramada)}</td>
+                  <td>{formatDate(t.dataConclusao)}</td>
+                  <td>{t.tentativas?.length || 0}</td>
+                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.observacoes}</td>
+                  <td>
+                    <div className="action-icons">
+                      <Link href={`/editar/${t.id}`} className="action-icon" title="Editar">✏️</Link>
+                      <span className="action-icon" onClick={() => handleDelete(t.id)} title="Excluir" style={{ cursor: 'pointer' }}>🗑️</span>
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
