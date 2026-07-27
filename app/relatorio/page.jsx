@@ -18,7 +18,7 @@ export default function Relatorio() {
 
   const getStatusBadgeClass = (status) => {
     const map = {
-      'Em Aberto': 'badge-aberto',
+      'Não Iniciado': 'badge-aberto',
       'Em Execução': 'badge-execucao',
       'Aprovado': 'badge-aprovado',
       'Reprovado': 'badge-reprovado',
@@ -32,7 +32,7 @@ export default function Relatorio() {
     const rows = tryouts.map(t => [
       t.codigo,
       t.setor,
-      t.status || 'Em Aberto',
+      t.status || 'Não Iniciado',
       t.responsavel,
       formatDate(t.dataProgramada),
       formatDate(t.dataConclusao),
@@ -85,7 +85,7 @@ export default function Relatorio() {
                 <tr key={t.id}>
                   <td>{t.codigo}</td>
                   <td>{t.setor}</td>
-                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Em Aberto'}</span></td>
+                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Não Iniciado'}</span></td>
                   <td>{t.responsavel}</td>
                   <td>{formatDate(t.dataProgramada)}</td>
                   <td>{formatDate(t.dataConclusao)}</td>
