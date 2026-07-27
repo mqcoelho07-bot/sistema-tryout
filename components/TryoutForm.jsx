@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../lib/supabase';
 
 const STATUS_OPTIONS = [
   { value: 'Não Iniciado', label: 'Não Iniciado', color: '#6b7280' },
