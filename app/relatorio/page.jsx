@@ -16,9 +16,15 @@ export default function Relatorio() {
     return `${day}/${month}/${year}`;
   }
 
-  const getTryoutStatus = (tryout) => {
-    if (!tryout.tentativas || tryout.tentativas.length === 0) return 'Em Aberto';
-    return tryout.tentativas[tryout.tentativas.length - 1].status || 'Em Aberto';
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      'Em Aberto': 'badge-aberto',
+      'Em Execução': 'badge-execucao',
+      'Aprovado': 'badge-aprovado',
+      'Reprovado': 'badge-reprovado',
+      'Aprovado Condicionalmente': 'badge-condicional'
+    };
+    return map[status] || '';
   };
 
   const handleExportCSV = () => {
@@ -26,7 +32,7 @@ export default function Relatorio() {
     const rows = tryouts.map(t => [
       t.codigo,
       t.setor,
-      getTryoutStatus(t),
+      t.status || 'Em Aberto',
       t.responsavel,
       formatDate(t.dataProgramada),
       formatDate(t.dataConclusao),
@@ -44,17 +50,6 @@ export default function Relatorio() {
     link.href = URL.createObjectURL(blob);
     link.download = 'relatorio_tryouts.csv';
     link.click();
-  };
-
-  const getStatusBadgeClass = (status) => {
-    const map = {
-      'Em Aberto': 'badge-aberto',
-      'Em Execução': 'badge-execucao',
-      'Aprovado': 'badge-aprovado',
-      'Reprovado': 'badge-reprovado',
-      'Aprovado Condicionalmente': 'badge-condicional'
-    };
-    return map[status] || '';
   };
 
   return (
@@ -86,21 +81,18 @@ export default function Relatorio() {
                 <td colSpan="8" className="empty-state">Nenhum tryout registrado.</td>
               </tr>
             ) : (
-              tryouts.map(t => {
-                const status = getTryoutStatus(t);
-                return (
-                  <tr key={t.id}>
-                    <td>{t.codigo}</td>
-                    <td>{t.setor}</td>
-                    <td><span className={`badge ${getStatusBadgeClass(status)}`}>{status}</span></td>
-                    <td>{t.responsavel}</td>
-                    <td>{formatDate(t.dataProgramada)}</td>
-                    <td>{formatDate(t.dataConclusao)}</td>
-                    <td>{t.tentativas?.length || 0}</td>
-                    <td>{t.observacoes}</td>
-                  </tr>
-                );
-              })
+              tryouts.map(t => (
+                <tr key={t.id}>
+                  <td>{t.codigo}</td>
+                  <td>{t.setor}</td>
+                  <td><span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status || 'Em Aberto'}</span></td>
+                  <td>{t.responsavel}</td>
+                  <td>{formatDate(t.dataProgramada)}</td>
+                  <td>{formatDate(t.dataConclusao)}</td>
+                  <td>{t.tentativas?.length || 0}</td>
+                  <td>{t.observacoes}</td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
