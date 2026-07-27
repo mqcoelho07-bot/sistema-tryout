@@ -1,10 +1,7 @@
 'use client';
-
-import { useState } from 'react';
-
+import { useState, Fragment } from 'react';
 const SETORES = ['Vulcanização', 'Estamparia', 'Fundição', 'Montagem'];
 const STATUS = ['Não Iniciado', 'Em Execução', 'Aprovado', 'Reprovado', 'Aprovado Condicionalmente'];
-
 export default function TryoutForm({ initialData, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     codigo: initialData?.codigo || '',
@@ -18,11 +15,9 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     tentativas: initialData?.tentativas ? initialData.tentativas.map((t, i) => ({ ...t, numero: i + 1 })) : [],
     observacoes: initialData?.observacoes || ''
   });
-
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleAddTentativa = () => {
     const newTentativa = {
       numero: formData.tentativas.length + 1,
@@ -33,19 +28,16 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     };
     setFormData(prev => ({ ...prev, tentativas: [...prev.tentativas, newTentativa] }));
   };
-
   const handleRemoveTentativa = (index) => {
     const tentativas = formData.tentativas.filter((_, i) => i !== index);
     tentativas.forEach((t, i) => { t.numero = i + 1; });
     setFormData(prev => ({ ...prev, tentativas }));
   };
-
   const handleTentativaChange = (index, field, value) => {
     const tentativas = [...formData.tentativas];
     tentativas[index] = { ...tentativas[index], [field]: value };
     setFormData(prev => ({ ...prev, tentativas }));
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const cleanData = {
@@ -55,7 +47,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     cleanData.tentativas.forEach((t, i) => { t.numero = i + 1; });
     onSubmit(cleanData);
   };
-
   const getStatusBadgeClass = (status) => {
     const map = {
       'Não Iniciado': 'badge-aberto',
@@ -66,7 +57,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
     };
     return map[status] || '';
   };
-
   return (
     <form onSubmit={handleSubmit} className="form-card">
       {/* Seção 1: Informações da Ferramenta */}
@@ -93,7 +83,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
             placeholder="Ex: Matriz de vulcanização - Pneu 205/55 R16" />
         </div>
       </div>
-
       {/* Seção 2: Status e Responsabilidade */}
       <div className="form-section">
         <h2 className="form-section-title">Status e Responsabilidade</h2>
@@ -135,7 +124,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
           <div className="form-hint">Preenchida ao concluir o tryout</div>
         </div>
       </div>
-
       {/* Seção 3: Tentativas de Tryout */}
       <div className="form-section">
         <h2 className="form-section-title">Tentativas de Tryout</h2>
@@ -146,51 +134,55 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
               <th>Data</th>
               <th>Status</th>
               <th>Responsável</th>
-              <th>Observações</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {formData.tentativas.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
+                <td colSpan="5" style={{ textAlign: 'center', color: '#9ca3af', padding: '16px' }}>
                   Nenhuma tentativa registrada. Clique em "Adicionar Nova Tentativa".
                 </td>
               </tr>
             ) : (
               formData.tentativas.map((tentativa, index) => (
-                <tr key={index}>
-                  <td style={{ fontWeight: 'bold' }}>{tentativa.numero}ª</td>
-                  <td>
-                    <input className="form-input" type="date" value={tentativa.data || ''}
-                      onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
-                  </td>
-                  <td>
-                    <select className="form-select" value={tentativa.status || ''}
-                      onChange={e => handleTentativaChange(index, 'status', e.target.value)}>
-                      {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <div style={{ marginTop: '4px' }}>
-                      <span className={`badge ${getStatusBadgeClass(tentativa.status)}`}>{tentativa.status}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <input className="form-input" type="text" value={tentativa.responsavel || ''}
-                      onChange={e => handleTentativaChange(index, 'responsavel', e.target.value)}
-                      placeholder="Responsável" />
-                  </td>
-                  <td>
-                    <input className="form-input" type="text" value={tentativa.observacoes || ''}
-                      onChange={e => handleTentativaChange(index, 'observacoes', e.target.value)}
-                      placeholder="Observações da tentativa" />
-                  </td>
-                  <td>
-                    <button type="button" className="btn-remove-tentativa"
-                      onClick={() => handleRemoveTentativa(index)} title="Excluir tentativa">
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
+                <Fragment key={index}>
+                  <tr>
+                    <td style={{ fontWeight: 'bold' }}>{tentativa.numero}ª</td>
+                    <td>
+                      <input className="form-input" type="date" value={tentativa.data || ''}
+                        onChange={e => handleTentativaChange(index, 'data', e.target.value)} />
+                    </td>
+                    <td>
+                      <select className="form-select" value={tentativa.status || ''}
+                        onChange={e => handleTentativaChange(index, 'status', e.target.value)}>
+                        {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                      <div style={{ marginTop: '4px' }}>
+                        <span className={`badge ${getStatusBadgeClass(tentativa.status)}`}>{tentativa.status}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <input className="form-input" type="text" value={tentativa.responsavel || ''}
+                        onChange={e => handleTentativaChange(index, 'responsavel', e.target.value)}
+                        placeholder="Responsável" />
+                    </td>
+                    <td>
+                      <button type="button" className="btn-remove-tentativa"
+                        onClick={() => handleRemoveTentativa(index)} title="Excluir tentativa">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan="5" style={{ paddingTop: '4px', paddingBottom: '8px' }}>
+                      <textarea className="form-input" value={tentativa.observacoes || ''}
+                        onChange={e => handleTentativaChange(index, 'observacoes', e.target.value)}
+                        placeholder="Observações da tentativa"
+                        style={{ width: '100%', minHeight: '60px', resize: 'vertical' }} />
+                    </td>
+                  </tr>
+                </Fragment>
               ))
             )}
           </tbody>
@@ -199,7 +191,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
           + Adicionar Nova Tentativa
         </button>
       </div>
-
       {/* Seção 4: Observações */}
       <div className="form-section">
         <h2 className="form-section-title">Observações Gerais</h2>
@@ -209,7 +200,6 @@ export default function TryoutForm({ initialData, onSubmit, onCancel }) {
             placeholder="Observações gerais sobre o tryout..." />
         </div>
       </div>
-
       {/* Ações */}
       <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
         <button type="submit" className="btn btn-save">Salvar Alterações</button>
